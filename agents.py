@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 # This aligns with Track 1 and Track 2 of the Gen AI Academy.
 from google.adk import Agent
 from google.adk.models import Gemini
+from google.adk.runners import InMemoryRunner
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
@@ -66,7 +67,12 @@ class ProductivityWorkforce:
             model=self.model
         )
         
+        # 3. THE ENGINE (The Runner)
+        # ADK Agents require a Runner to execute their logic.
+        self.runner = InMemoryRunner(agent=self.manager)
+        
         self._session = None
+        self._exit_stack = None
 
     async def connect_mcp(self):
         """Standardized MCP Tool Integration (Track 2)"""
@@ -106,9 +112,9 @@ class ProductivityWorkforce:
                 )
 
             # Register Sub-Agents as TOOLS to the Manager (True Multi-Agent)
-            self.manager.register_tool(name="ask_chronos", description="Delegate to Chronos.", fn=self.chronos.run)
-            self.manager.register_tool(name="ask_task_master", description="Delegate to TaskMaster.", fn=self.task_master.run)
-            self.manager.register_tool(name="ask_scribe", description="Delegate to Scribe.", fn=self.scribe.run)
+            self.manager.register_tool(name="ask_chronos", description="Delegate to Chronos.", fn=self._make_agent_tool(self.chronos))
+            self.manager.register_tool(name="ask_task_master", description="Delegate to TaskMaster.", fn=self._make_agent_tool(self.task_master))
+            self.manager.register_tool(name="ask_scribe", description="Delegate to Scribe.", fn=self._make_agent_tool(self.scribe))
             
             print("🏆 ADK Workforce connected to MCP and Multi-Agent Hierarchy active.")
             return session
@@ -126,10 +132,19 @@ class ProductivityWorkforce:
             return str(result.content[0].text)
         return call_tool
 
+    def _make_agent_tool(self, sub_agent: Agent):
+        """Wraps a sub-agent as a tool for the manager"""
+        async def call_agent(query: str, **kwargs):
+            # Create a temporary runner for the sub-agent
+            sub_runner = InMemoryRunner(agent=sub_agent)
+            response = await sub_runner.run(query)
+            return response.text
+        return call_agent
+
     async def run(self, user_input: str):
-        """Executes the Multi-Agent workflow via ADK"""
-        # ADK's .run() handles the tool loop and reasoning internally (Zero-Pass optimization)
-        response = await self.manager.run(user_input)
+        """Executes the Multi-Agent workflow via ADK Runner"""
+        # We use the runner to execute the manager's logic
+        response = await self.runner.run(user_input)
         return response.text
 
 # Global singleton for the app lifecycle
