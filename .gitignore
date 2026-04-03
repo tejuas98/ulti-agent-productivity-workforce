@@ -1,0 +1,9 @@
+.env
+*.db
+__pycache__/
+venv/
+.DS_Store
+*.pyc
+app_data.db
+DEPLOY_FINAL.sh
+HF_DEPLOY.py
