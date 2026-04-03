@@ -16,5 +16,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Expose port and run server
-# Cloud Run expects the app to listen on $PORT
-CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# Hugging Face Spaces expects the app on port 7860 ($PORT)
+ENV PORT=7860
+EXPOSE 7860
+
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT} --log-level debug"]
