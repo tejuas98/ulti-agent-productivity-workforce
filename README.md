@@ -1,3 +1,12 @@
+---
+title: Multi Agent Productivity Workforce
+emoji: 🚀
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+pinned: false
+---
+
 # Google ADK Multi-Agent Productivity Workforce
 
 This project is a high-fidelity multi-agent productivity ecosystem designed for the Google Cloud Gen AI Academy Hackathon. It integrates the Agent Development Kit (ADK), Model Context Protocol (MCP), and AlloyDB to demonstrate a production-ready AI workforce.
