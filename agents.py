@@ -137,14 +137,22 @@ class ProductivityWorkforce:
         async def call_agent(query: str, **kwargs):
             # Create a temporary runner for the sub-agent
             sub_runner = InMemoryRunner(agent=sub_agent)
-            response = await sub_runner.run(query)
+            response = await sub_runner.run(
+                user_id="supervisor",
+                session_id="default_tool_session",
+                new_message=query
+            )
             return response.text
         return call_agent
 
     async def run(self, user_input: str):
         """Executes the Multi-Agent workflow via ADK Runner"""
-        # We use the runner to execute the manager's logic
-        response = await self.runner.run(user_input)
+        # We use keyword arguments to satisfy the ADK Runner signature
+        response = await self.runner.run(
+            user_id="default_user",
+            session_id="default_session",
+            new_message=user_input
+        )
         return response.text
 
 # Global singleton for the app lifecycle
