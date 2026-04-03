@@ -32,9 +32,12 @@ class QueryResponse(BaseModel):
 
 @app.on_event("startup")
 async def startup():
-    print("🚀 Initializing Google ADK Workforce...")
+    print("🚀 App Startup: Initializing Google ADK Workforce...")
+    # Initialize in background so the web server starts listening immediately (Fixes HF 'Starting' hang)
+    asyncio.create_task(init_workforce())
+
+async def init_workforce():
     try:
-        # Start the MCP tool-bridge
         await workforce.connect_mcp()
         print("✅ ADK Workforce connected to MCP Tools.")
     except Exception as e:

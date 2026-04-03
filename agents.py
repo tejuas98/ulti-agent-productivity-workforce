@@ -20,12 +20,23 @@ class ProductivityWorkforce:
     """
     
     def __init__(self):
-        # We use the Vertex AI engine as taught in the Academy
-        self.model = Gemini(
-            model_id="gemini-1.5-flash",
-            project=os.getenv("GOOGLE_CLOUD_PROJECT"),
-            location=os.getenv("GOOGLE_CLOUD_LOCATION", "us-central1")
-        )
+        # HACKATHON CONFIG: Support both Vertex AI (GCP) and API Key (Studio/HF)
+        api_key = os.getenv("GOOGLE_API_KEY")
+        project_id = os.getenv("GOOGLE_CLOUD_PROJECT")
+        
+        if api_key and not project_id:
+            # Use Gemini API Key (Best for HF/Quick Demos)
+            self.model = Gemini(
+                model_id="gemini-1.5-flash",
+                api_key=api_key
+            )
+        else:
+            # Use Vertex AI (Best for Cloud Run/Track 1)
+            self.model = Gemini(
+                model_id="gemini-1.5-flash",
+                project=project_id,
+                location=os.getenv("GOOGLE_CLOUD_LOCATION", "us-central1")
+            )
         
         # 1. SPECIALIZED SUB-AGENTS (The "Employees")
         self.chronos = Agent(
@@ -65,9 +76,15 @@ class ProductivityWorkforce:
             env=os.environ.copy()
         )
         
-        async with stdio_client(server_params) as (read, write):
+        # Keep the client and session alive for the object lifecycle
+        self._exit_stack = asyncio.ExitStack()
+        try:
+            # Connect to the MCP Server
+            transport = await self._exit_stack.enter_async_context(stdio_client(server_params))
+            read, write = transport
             session = ClientSession(read, write)
             await session.initialize()
+            
             mcp_tools = await session.list_tools()
             self._session = session
             
@@ -89,24 +106,16 @@ class ProductivityWorkforce:
                 )
 
             # Register Sub-Agents as TOOLS to the Manager (True Multi-Agent)
-            self.manager.register_tool(
-                name="ask_chronos",
-                description="Delegate calendar and scheduling tasks to Chronos.",
-                fn=self.chronos.run
-            )
-            self.manager.register_tool(
-                name="ask_task_master",
-                description="Delegate task management and action items to TaskMaster.",
-                fn=self.task_master.run
-            )
-            self.manager.register_tool(
-                name="ask_scribe",
-                description="Delegate note-taking and information retrieval to Scribe.",
-                fn=self.scribe.run
-            )
+            self.manager.register_tool(name="ask_chronos", description="Delegate to Chronos.", fn=self.chronos.run)
+            self.manager.register_tool(name="ask_task_master", description="Delegate to TaskMaster.", fn=self.task_master.run)
+            self.manager.register_tool(name="ask_scribe", description="Delegate to Scribe.", fn=self.scribe.run)
             
-            print("🏆 ADK Workforce initialized with True Multi-Agent Hierarchy.")
+            print("🏆 ADK Workforce connected to MCP and Multi-Agent Hierarchy active.")
             return session
+        except Exception as e:
+            print(f"❌ MCP Connection Error: {e}")
+            await self._exit_stack.aclose()
+            raise
 
     def _make_mcp_call(self, tool_name: str):
         """Creates a wrapper for ADK to talk to MCP"""
