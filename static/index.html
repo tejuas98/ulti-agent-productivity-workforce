@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Multi-Agent Interface</title>
+    <!-- Cute, geometric font to match the screenshots -->
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        
+        <!-- Left Sidebar Navigation for Desktop -->
+        <aside class="sidebar-nav">
+            <div class="nav-brand">
+                <div class="icon-btn">NX</div>
+            </div>
+            <div class="nav-pill vertical">
+                <button class="nav-btn active" data-target="section-chat" data-title="Chat">
+                    <span>Chat</span>
+                </button>
+                <button class="nav-btn" data-target="section-tasks" data-title="Tasks">
+                    <span>Tasks</span>
+                </button>
+                <button class="nav-btn" data-target="section-events" data-title="Calendar">
+                    <span>Calendar</span>
+                </button>
+                <button class="nav-btn" data-target="section-notes" data-title="Notes">
+                    <span>Notes</span>
+                </button>
+                <button class="nav-btn" data-target="section-timer" data-title="Apple Pomodoro">
+                    <span>Timer</span>
+                </button>
+            </div>
+            <!-- Padding spacer at bottom of sidebar -->
+            <div style="flex-grow: 1;"></div>
+
+            <!-- RESET SESSION -->
+            <div style="padding: 20px; border-top: var(--brutal-border);">
+                <button onclick="resetSession()" style="width: 100%; padding: 12px; background: #fee2e2; border: 2px solid #000; color: #ef4444; font-weight: 800; border-radius: 12px; cursor: pointer; box-shadow: 4px 4px 0 #000; transition: all 0.2s;" 
+                    onmouseover="this.style.transform='translate(-2px, -2px)'; this.style.boxShadow='6px 6px 0 #000';" 
+                    onmouseout="this.style.transform='none'; this.style.boxShadow='4px 4px 0 #000';">
+                    Reset Session 🗑️
+                </button>
+            </div>
+            
+            <!-- User Profile (SaaS feature) -->
+            <div class="user-profile" id="user-profile-btn" title="Click to change profile" style="cursor: pointer;">
+                <div class="profile-avatar" id="profile-avatar-img">👤</div>
+                <div class="profile-info">
+                    <div class="profile-name" id="profile-name-text">John Doe</div>
+                    <div class="profile-role">Admin Account</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Right Side Main View -->
+        <div class="main-view">
+            <!-- Header -->
+            <header class="app-header">
+                <h1 id="page-title">Chat</h1>
+                <div class="icon-btn accent-green" id="header-plus-btn">+</div>
+            </header>
+
+            <main class="content-wrapper">
+                
+                <!-- SECTION: CHAT -->
+                <section id="section-chat" class="dashboard-section active-section">
+                    <div style="display: flex; height: 100%; width: 100%; gap: 24px; padding: 20px 40px 0;">
+                        <!-- Left: Main Chat Area -->
+                        <div style="flex: 1; display: flex; flex-direction: column; position: relative; overflow: hidden;">
+                            <div class="chat-container" style="padding: 0 0 20px 0; overflow-y: auto;">
+                                <div id="chat-box" class="chat-box" style="padding-bottom: 20px;">
+                                    <div class="message system-message">
+                                        <div class="avatar">🤖</div>
+                                        <div class="bubble">
+                                            <p>Hey! I've been upgraded to a wide horizontal desktop app!</p>
+                                            <p>Try switching to the Tasks and Activities tabs to see the new Grid Layout.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Chat Input -->
+                            <div class="input-area" style="position: relative; width: 100%; padding: 20px 0; border-top: var(--brutal-border);">
+                                <input type="text" id="user-input" placeholder="Give me a directive..." autocomplete="off" />
+                                <button class="cute-btn primary-btn" id="send-btn">Send</button>
+                            </div>
+                        </div>
+
+                        <!-- Right: Chat History Sidebar -->
+                        <div style="width: 280px; display: flex; flex-direction: column; border-left: var(--brutal-border); padding-left: 24px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                                <h2 style="font-size: 18px; font-weight: 800;">Past Directives</h2>
+                            </div>
+                            <div id="history-feed" style="overflow-y: auto; flex: 1; padding-bottom: 20px; display: flex; flex-direction: column; gap: 12px;">
+                                <!-- Dynamically loaded from DB -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SECTION: TASKS -->
+                <section id="section-tasks" class="dashboard-section hidden-section">
+                    <div class="section-content">
+                        <div class="empty-state" id="tasks-empty" style="display: none;">
+                            <span class="emoji">🌱</span>
+                            <h2>No Tasks yet!</h2>
+                            <p>Get started by asking me in the Chat to add a task.</p>
+                            <button class="cute-btn secondary-btn link-to-chat">Add Task</button>
+                        </div>
+                        <div class="feed" id="tasks-feed">
+                            <!-- Loaded dynamically via JS -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SECTION: EVENTS -->
+                <section id="section-events" class="dashboard-section hidden-section">
+                    <div class="section-content">
+                        <div class="empty-state" id="events-empty" style="display: none;">
+                            <span class="emoji">📅</span>
+                            <h2>No Events yet!</h2>
+                            <p>Ask me to schedule a meeting in Chat.</p>
+                            <button class="cute-btn secondary-btn link-to-chat">Schedule Event</button>
+                        </div>
+                        <div class="feed" id="events-feed">
+                            <!-- Loaded dynamically via JS -->
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- SECTION: NOTES -->
+                <section id="section-notes" class="dashboard-section hidden-section">
+                    <div class="section-content">
+                        <div class="empty-state" id="notes-empty" style="display: none;">
+                            <span class="emoji">📝</span>
+                            <h2>No Notes yet!</h2>
+                            <p>Ask me to save a note for you in Chat.</p>
+                            <button class="cute-btn secondary-btn link-to-chat">Create Note</button>
+                        </div>
+                        <div class="feed" id="notes-feed">
+                            <!-- Loaded dynamically via JS -->
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- SECTION: TIMER -->
+                <section id="section-timer" class="dashboard-section hidden-section">
+                    <div class="section-content" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
+                        <div id="apple-icon" style="font-size: 100px; margin-bottom: 20px;">🍎</div>
+                        <div style="font-size: 32px; font-weight: 800; margin-bottom: 10px;">Pomodoro Focus</div>
+                        <div id="timer-display" style="font-size: 96px; font-weight: 800; font-family: monospace; color: #ff3b30; text-shadow: 4px 4px 0px #000; letter-spacing: 5px; margin-bottom: 40px;">00:00</div>
+                        
+                        <div style="display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; justify-content: center;">
+                            <button onclick="startTimer(15)" class="cute-btn primary-btn" style="background: #a5f3fc;">15 Min</button>
+                            <button onclick="startTimer(30)" class="cute-btn primary-btn" style="background: #fde047;">30 Min</button>
+                            <button onclick="startTimer(45)" class="cute-btn primary-btn" style="background: #a7f3d0;">45 Min</button>
+                            <button onclick="startTimer('custom')" class="cute-btn secondary-btn">Custom ⚙️</button>
+                        </div>
+                        <button onclick="stopTimer()" class="cute-btn secondary-btn" style="color: #ef4444; border-color: #ef4444;">🛑 Stop Timer</button>
+                    </div>
+                </section>
+                
+            </main>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+    <script src="app.js?v=2"></script>
+</body>
+</html>
